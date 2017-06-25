@@ -1,0 +1,12 @@
+aws:
+    datacenter: us-central-1
+    ami: "ami-060cdeff"
+    instanse_type: "t2.nano"
+tor:
+    port: 9060
+proxy:
+    socks:
+        port: 9100
+    http:
+        port: 8090
+
