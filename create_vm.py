@@ -14,6 +14,7 @@ DEFAULT_CFG = """
 ssh:
     keydir: "."
 aws:
+    machine_name: Test-Host-For-Proxy
     profile : vagrantLopa
     datacenter : eu-west-1
     ami : "ami-060cde69"
@@ -94,6 +95,14 @@ def o_create_instance(o_ec2res, o_cfg, d_keyPair, s_sg_id):
     # s_def_instanceType = 't2.micro'
     s_inst_type = o_cfg['aws']['instance_type']
     # s_region = o_cfg['aws']['region']
+    if 'machine_name' in o_cfg['aws']:
+        l_tagsSpec = [{'ResourceType': 'instance',
+                      'Tags': [
+                          {'Key': 'Name',
+                           'Values': o_cfg['aws']['machine_name']
+                           }, ]}]
+    else:
+        l_tagsSpec = []
     o_instance = None
     try:
         o_instance = o_ec2res.create_instances(
@@ -105,6 +114,7 @@ def o_create_instance(o_ec2res, o_cfg, d_keyPair, s_sg_id):
                         BlockDeviceMappings=ld_blockdevs,
                         SecurityGroupIds=[s_sg_id],
                         # DryRun = True,
+                        TagSpecifications=l_tagsSpec,
                     )
 
     except Exception as e:
@@ -140,6 +150,13 @@ def o_launch_VM(o_cfg):
         msg(str(o_instance))
         msg('Launched an instance with ID "{}" and IP {}'.format(
             o_instance.instance_id, o_instance.public_ip_address))
+        # We know that there should be only one instance
+        o_instance.wait_until_running(
+            Filters=[
+                {
+                    'Name': 'instance-id',
+                    'Value': o_instance.instance_id
+                }])
     return o_vm
 
 
